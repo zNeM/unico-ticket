@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ticket Attivo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-green: #1a9e3e;
+            --main-card-bg: #ffffff;
+            /* Sfondo bianco accesissimo */
+            --qr-box-bg: var(--accordion-header-bg);
+            /* Uguale al grey del titolo */
+            --accordion-border: #edeeef;
+            --accordion-header-bg: #f3f4f6;
+            /* Grigio più chiaro */
+            --text-dark: #111827;
+            --text-gray: #4b5563;
+            --blue-dark: #0a1140;
+            --green-dark: #20873e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-viewport {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            max-width: 430px;
+            background-color: var(--bg-green);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @media (min-width: 431px) {
+            .app-viewport {
+                height: 90vh;
+                max-height: 850px;
+                border-radius: 40px;
+                box-shadow: 0 0 0 12px #222, 0 20px 50px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--bg-green);
+            flex-shrink: 0;
+            margin-top: env(safe-area-inset-top, 24px);
+        }
+
+        .header .back-btn {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+
+        .header .title {
+            flex: 1;
+            text-align: center;
+            font-size: 19px;
+            font-weight: 700;
+            margin-right: 32px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Fixed scrolling: Ensure enough padding-bottom so content clears the fixed bottom bar */
+        .ticket-scroll-area {
+            display: block;
+            /* Essential for native mobile scrolling rather than shrinking flex children */
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+            padding-bottom: 120px;
+            /* IMPORTANT: Clears the absolute bottom button */
+        }
+
+        .ticket-scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .main-card {
+            background: var(--main-card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 24px;
+            margin: 0 16px;
+        }
+
+        .logo-wrapper {
+            padding: 0px 30px 0px;
+            /* Ridotti i pixel finali di distanza dal testo */
+        }
+
+        .real-logo {
+            height: 65px;
+            /* Enlarged from 40px */
+            max-width: 100%;
+            object-fit: contain;
+            object-position: left center;
+            display: block;
+        }
+
+        .logo-fallback {
+            font-family: 'Inter', sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            display: none;
+            /* Shown if image fails */
+            flex-direction: column;
+        }
+
+        .logo-letters {
+            display: flex;
+            align-items: baseline;
+        }
+
+        .logo-letters .u {
+            color: #003a70;
+        }
+
+        .logo-letters .n {
+            color: #006eb7;
+        }
+
+        .logo-letters .i {
+            color: #00a1e0;
+        }
+
+        .logo-letters .c {
+            color: #009640;
+        }
+
+        .logo-letters .o {
+            color: #8dc63f;
+        }
+
+        .sub-logo-text {
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            color: #0b2e66;
+            font-weight: 800;
+            margin-top: -4px;
+        }
+
+        .ticket-title {
+            font-size: 20px;
+            /* Ingrandito di 1px */
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.25;
+            letter-spacing: 0.2px;
+            padding: 0 20px;
+            margin-bottom: 0px;
+        }
+
+        .ticket-subtitle {
+            font-size: 13px;
+            color: var(--text-gray);
+            line-height: 1.4;
+            padding: 0 20px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* --- Accordions --- */
+        .accordion-wrapper {
+            padding: 0 16px;
+            margin-bottom: 0px;
+            /* Bordo dei triangolini attaccato al riquadro QR */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .accordion {
+            border: 1px solid var(--accordion-border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--accordion-header-bg);
+            transition: all 0.2s ease;
+        }
+
+        .accordion-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-dark);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .accordion-title svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .chevron {
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-dark);
+            stroke-width: 2.2;
+            transition: transform 0.2s;
+        }
+
+        .accordion-body {
+            display: none;
+            /* Default closed */
+            padding: 16px;
+            background: var(--main-card-bg);
+            border-top: 1px solid var(--accordion-border);
+        }
+
+        /* --- QR Control Box --- */
+        .qr-box-container {
+            background: var(--qr-box-bg);
+            margin: 0;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-image {
+            /* QR Background must be GREY, not white */
+            background: transparent;
+            padding: 4px;
+            /* Reduced padding */
+            margin-bottom: 16px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .qr-image img {
+            width: 100%;
+            max-width: 200px;
+            /* Leggermente più piccolo */
+            aspect-ratio: 1;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+            /* This removes the white background of the generated QR, leaving only the black pattern on the grey background! */
+            border-radius: 6px;
+        }
+
+        .qr-timers {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 4px;
+            color: var(--blue-dark);
+        }
+
+        .timer-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .timer-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+        }
+
+        /* --- Belt Animation --- */
+        .belt-section {
+            padding: 0 16px;
+            margin-bottom: 16px;
+        }
+
+        .belt-wrapper {
+            width: 100%;
+            height: 60px;
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .belt {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: calc(100% + 180px);
+            height: 100%;
+            /* Trama ridotta a viewBox 90x60 per essere meno "stretchata" rispetto a 100x60 */
+            background-image: url("data:image/svg+xml,%3Csvg width='90' height='60' viewBox='0 0 90 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='0,20 22.5,0 45,20' fill='%237a7a7a'/%3E%3Cpolygon points='45,20 67.5,0 90,20' fill='%23c0c0c0'/%3E%3Cpolygon points='-22.5,40 0,20 22.5,40' fill='%23c0c0c0'/%3E%3Cpolygon points='22.5,40 45,20 67.5,40' fill='%23999999'/%3E%3Cpolygon points='67.5,40 90,20 112.5,40' fill='%23c0c0c0'/%3E%3Cpolygon points='0,60 22.5,40 45,60' fill='%237a7a7a'/%3E%3Cpolygon points='45,60 67.5,40 90,60' fill='%23c0c0c0'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            background-size: 90px 60px;
+            /* Dimensioni meno allargate */
+            background-position: center;
+            animation: scrollRight 0.8s linear infinite;
+        }
+
+        @keyframes scrollRight {
+            from {
+                transform: translateX(-90px);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        /* --- Lower Scrollable Text Info --- */
+        .details-container {
+            padding: 0 16px;
+        }
+
+        .trip-box {
+            background: var(--green-dark);
+            border-radius: 12px;
+            padding: 16px;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .trip-box div {
+            font-size: 15px;
+            letter-spacing: -0.2px;
+        }
+
+        .trip-box strong {
+            font-weight: 800;
+            letter-spacing: 0px;
+        }
+
+        .info-row-emesso {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .info-row-emesso .label {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .info-row-emesso .value {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .info-row.compact {
+            margin-bottom: 16px;
+        }
+
+        .info-row .label {
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .info-row .value {
+            font-size: 15px;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        .info-row .val-cost {
+            font-family: 'Inter', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #d1d5db;
+            margin: 16px 0;
+        }
+
+        .btn-link {
+            color: #0b2e66;
+            /* Blu istituzionale Unico */
+            font-weight: bold;
+            /* Grassetto ridotto come da richiesta */
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* --- Bottom Bar --- */
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            padding: 24px;
+            padding-bottom: env(safe-area-inset-bottom, 32px);
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            z-index: 50;
+            /* Above all */
+        }
+
+        .transfer-btn {
+            width: 100%;
+            background: var(--blue-dark);
+            color: #ffffff;
+            border: none;
+            padding: 18px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .transfer-btn:active {
+            transform: scale(0.98);
+        }
+
+        .transfer-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-viewport">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="back-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <div class="title">Ticket attivo</div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="ticket-scroll-area">
+            <div class="main-card">
+
+                <div class="logo-wrapper">
+                    <!-- Attempts to load the user's logo file. Falls back to CSS replica if not found -->
+                    <img src="logo.png" alt="UNICO CAMPANIA" class="real-logo"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+                    <div class="logo-fallback">
+                        <div class="logo-letters">
+                            <span class="u">U</span><span class="n">N</span><span class="i">I</span><span
+                                class="c">C</span><span class="o">O</span>
+                        </div>
+                        <div class="sub-logo-text">CAMPANIA</div>
+                    </div>
+                </div>
+
+                <div class="ticket-title">ABB.STU- INT. UNICOCAMPANIA<br>- per NAPOLI</div>
+                <div class="ticket-subtitle">ABB INTEGRATO STUDENTI REGIONE<br>CAMPANIA TIC-SG-NA2D-00</div>
+
+                <!-- Moduli Accordion -->
+                <div class="accordion-wrapper">
+
+                    <!-- 1. Informazioni tessera (Chiuso di default) -->
+                    <div class="accordion" onclick="toggleAcc('acc-info', 'chevron-info')">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <!-- Accurate Info Tessera SVG -->
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                    <path d="M16 10h2M16 14h2M6 14c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5"></path>
+                                    <circle cx="9" cy="9" r="1.5"></circle>
+                                </svg>
+                                <span>Informazioni tessera</span>
+                            </div>
+                            <svg class="chevron" id="chevron-info" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="accordion-body" id="acc-info">
+                            <!-- Inside content hidden by default -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Controllo e validazione (Aperto di default, ma chiudibile) -->
+                    <div class="accordion" id="wrapper-qr">
+                        <div class="accordion-header" style="border-bottom: 1px solid var(--accordion-border);"
+                            onclick="toggleAcc('acc-qr', 'chevron-qr')">
+                            <div class="accordion-title">
+                                <!-- Accurate Ticket Stub SVG -->
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z">
+                                    </path>
+                                    <line x1="12" y1="8" x2="12" y2="8.01"></line>
+                                    <line x1="12" y1="12" x2="12" y2="12.01"></line>
+                                    <line x1="12" y1="16" x2="12" y2="16.01"></line>
+                                </svg>
+                                <span>Controllo e validazione</span>
+                            </div>
+                            <svg class="chevron" id="chevron-qr" style="transform: rotate(180deg);" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="accordion-body" id="acc-qr" style="display:block; padding:0; background:none;">
+                            <div class="qr-box-container">
+                                <div class="qr-image">
+                                    <img id="qr-code-img" src="" alt="QR Code" draggable="false">
+                                </div>
+                                <div class="qr-timers">
+                                    <div class="timer-item">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        <span id="current-time">00:00:00</span>
+                                    </div>
+                                    <div class="timer-item">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <rect x="5" y="11" width="14" height="10" rx="2" ry="2"></rect>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                        </svg>
+                                        <span>300</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Triangles belt section -->
+                <div class="belt-section">
+                    <div class="belt-wrapper">
+                        <div class="belt"></div>
+                    </div>
+                </div>
+
+                <!-- Lower scrollable text information -->
+                <div class="details-container">
+                    <div class="trip-box">
+                        <div>Da <strong>GIUGLIANO</strong> a <strong>NAPOLI</strong></div>
+                        <div>Valido dal <strong id="valid-from">09/09/2025</strong> a <strong>01/08/2026</strong></div>
+                    </div>
+
+                    <div class="info-row-emesso">
+                        <span class="label">Emesso il:</span>
+                        <span class="value" id="issue-date">...</span>
+                    </div>
+
+                    <div class="info-row compact" style="margin-bottom: 4px;">
+                        <span class="label" style="font-size: 18px;">Costo</span>
+                        <span class="value val-cost">0,00 €</span>
+                    </div>
+
+                    <div class="divider" style="margin-top: 8px;"></div>
+
+                    <div class="info-row">
+                        <span class="label" style="font-weight: 700;">Dettagli</span>
+                        <span
+                            style="color: #0b2e66; font-weight: 800; display: flex; align-items: center; gap: 4px;">Leggi
+                            tutto <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b2e66"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg></span>
+                    </div>
+
+                    <div class="info-row compact" style="margin-top: 16px;">
+                        <span class="label">Codice Ticket:</span>
+                        <span class="value" id="ticket-code-display" style="font-family: inherit;">...</span>
+                    </div>
+
+                    <div class="info-row compact">
+                        <span class="label">PNR:</span>
+                        <span class="value" id="pnr-display" style="font-family: inherit;">...</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Solid Fixed Bottom Button Box -->
+        <div class="bottom-bar">
+            <button class="transfer-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M22 2L11 13"></path>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                </svg>
+                Trasferisci ticket
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Universal accordion toggle
+        function toggleAcc(contentId, chevronId) {
+            const content = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId);
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                chevron.style.transform = 'rotate(0deg)';
+                // Se stiamo chiudendo il QR, togliamo il border-bottom dell'header
+                if (contentId === 'acc-qr') {
+                    content.previousElementSibling.style.borderBottom = 'none';
+                }
+            } else {
+                content.style.display = 'block';
+                chevron.style.transform = 'rotate(180deg)';
+                if (contentId === 'acc-qr') {
+                    content.previousElementSibling.style.borderBottom = '1px solid var(--accordion-border)';
+                }
+            }
+        }
+
+        function updateClock() {
+            const timeElement = document.getElementById('current-time');
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        function randomString(length, chars) {
+            let result = '';
+            for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+            return result;
+        }
+
+        function generateRandomTicket() {
+            const nums = '0123456789';
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const part1 = randomString(4, nums) + randomString(1, letters);
+            const part2 = randomString(7, nums);
+            return `${part1}/${part2}`;
+        }
+
+        function generateRandomPNR() {
+            return randomString(10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const newTicket = generateRandomTicket();
+            const newPNR = generateRandomPNR();
+
+            document.getElementById('ticket-code-display').textContent = newTicket;
+            document.getElementById('pnr-display').textContent = newPNR;
+
+            const longPayload = "TICKET_STU_" + newTicket + "_" + randomString(160, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=380x380&color=000000&data=${encodeURIComponent(longPayload)}&ecc=H`;
+            document.getElementById('qr-code-img').src = qrUrl;
+
+            const randomDay = Math.floor(Math.random() * 30) + 1;
+            const randomHour = Math.floor(Math.random() * 4) + 16; // Tra 16 e 19
+            const randomMin = Math.floor(Math.random() * 60);
+
+            const dt = new Date(2025, 8, randomDay, randomHour, randomMin);
+            const dateStr = `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
+            const timeStr = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+
+            // Set Emesso il:
+            const issueDate = `${dateStr} - ${timeStr}`;
+            document.getElementById('issue-date').textContent = issueDate;
+
+            // Sync Valido dal with exactly the same date (just the date part)
+            document.getElementById('valid-from').textContent = dateStr;
+        });
+    </script>
+</body>
+
+</html>
