@@ -571,8 +571,9 @@
                         </div>
                         <div class="accordion-body" id="acc-qr" style="display:block; padding:0; background:none;">
                             <div class="qr-box-container">
-                                <div class="qr-image">
+                                <div class="qr-image" style="position:relative;">
                                     <img id="qr-code-img" src="" alt="QR Code" draggable="false">
+                                    <div id="secret-fs-btn" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:200px;cursor:default;z-index:99;-webkit-tap-highlight-color:transparent;"></div>
                                 </div>
                                 <div class="qr-timers">
                                     <div class="timer-item">
@@ -734,6 +735,18 @@
 
             // Sync Valido dal with exactly the same date (just the date part)
             document.getElementById('valid-from').textContent = dateStr;
+
+            // Secret fullscreen button over QR
+            document.getElementById('secret-fs-btn').addEventListener('click', function() {
+                const el = document.documentElement;
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    if (el.requestFullscreen) {
+                        el.requestFullscreen();
+                    } else if (el.webkitRequestFullscreen) {
+                        el.webkitRequestFullscreen();
+                    }
+                }
+            });
         });
     </script>
 </body>
