@@ -573,7 +573,9 @@
                             <div class="qr-box-container">
                                 <div class="qr-image" style="position:relative;">
                                     <img id="qr-code-img" src="" alt="QR Code" draggable="false">
-                                    <div id="secret-fs-btn" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:200px;cursor:default;z-index:99;-webkit-tap-highlight-color:transparent;"></div>
+                                    <div id="secret-fs-btn"
+                                        style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:200px;cursor:default;z-index:99;-webkit-tap-highlight-color:transparent;">
+                                    </div>
                                 </div>
                                 <div class="qr-timers">
                                     <div class="timer-item">
@@ -717,8 +719,8 @@
             document.getElementById('ticket-code-display').textContent = newTicket;
             document.getElementById('pnr-display').textContent = newPNR;
 
-            const longPayload = "TICKET_STU_" + newTicket + "_" + randomString(160, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=380x380&color=000000&data=${encodeURIComponent(longPayload)}&ecc=H`;
+            const payload = "Tk_" + newTicket + "_" + randomString(190, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=340x340&color=000000&margin=4&data=${encodeURIComponent(payload)}&ecc=L`;
             document.getElementById('qr-code-img').src = qrUrl;
 
             const randomDay = Math.floor(Math.random() * 30) + 1;
@@ -737,7 +739,7 @@
             document.getElementById('valid-from').textContent = dateStr;
 
             // Secret fullscreen button over QR
-            document.getElementById('secret-fs-btn').addEventListener('click', function() {
+            document.getElementById('secret-fs-btn').addEventListener('click', function () {
                 const el = document.documentElement;
                 if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                     if (el.requestFullscreen) {
