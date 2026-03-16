@@ -719,8 +719,16 @@
             document.getElementById('ticket-code-display').textContent = newTicket;
             document.getElementById('pnr-display').textContent = newPNR;
 
-            const payload = "Tk_" + newTicket + "_" + randomString(190, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=340x340&color=000000&margin=4&data=${encodeURIComponent(payload)}&ecc=L`;
+            // Build QR payload matching the exact original format
+            const hexChars = "0123456789abcdef";
+            const startDate = "2025-09-09T18:15";
+            const endDate = "2026-07-31T23:59";
+            const ticketHash = randomString(58, hexChars);
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const isoNow = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}+01:00`;
+            const qrData = `STUDRC\nTIC\n${startDate}\n${endDate}\n${newTicket.replace('/','')}${randomString(2,'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')}\n12\n2\n0\n${ticketHash}\n${isoNow}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=340x340&color=000000&margin=4&data=${encodeURIComponent(qrData)}&ecc=L`;
             document.getElementById('qr-code-img').src = qrUrl;
 
             const randomDay = Math.floor(Math.random() * 30) + 1;
